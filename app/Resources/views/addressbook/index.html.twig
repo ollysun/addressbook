@@ -1,15 +1,23 @@
-<style>
-    td,
-    th {
-        padding: 10px;
-    }
-    th {
-        text-align: left;
-    }
-</style>
+{% extends 'base.html.twig' %} 
+{% block stylesheets %} 
+   <style> 
+      .table { border-collapse: collapse; } 
+      .table th, td { 
+         border-bottom: 1px solid #ddd; 
+         width: 250px; 
+         text-align: left; 
+         align: left; 
+         padding:10px;
+      } 
+   </style> 
+{% endblock %}  
+{% block body %} 
+ <div> 
+      <a href = "{{ path('create_address') }}">Add</a> 
+</div> 
 <h1>All Addresses</h1>
 {% if data is not empty %}
-    <table>
+    <table class="table">
         <thead>
             <tr>
                 <th>FirstName</th>
@@ -34,13 +42,13 @@
                     <td>{{address.street}}</td>
                     <td>{{address.zip}}</td>
                     <td>{{address.phoneNo}}</td>
-                    <td>{{address.birthday}}</td>
+                    <td>{{address.birthday | date('c')}}</td>
                     <td>{{address.email}}</td>
                     <td>
-                        <a href="destroy/{{ article.id }}">Delete</a>
+                        <a href="destroy/{{ address.id }}">Delete</a>
                     </td>
                     <td>
-                        <a href="update/{{ article.id }}">Update</a>
+                        <a href="update/{{ address.id }}">Update</a>
                     </td>
                 </tr>
             {% endfor %}
@@ -49,5 +57,4 @@
     {% else %}
     <p>No address found.</p>
 {% endif %}
-<br/>
-<a href="/create">Create New</a>
+{% endblock %}         

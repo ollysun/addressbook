@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %} 
+{% block stylesheets %} 
+<style>
+th, td {
+  padding: 10px;
+}
+th {
+  text-align: right;
+}
+</style>
+{% endblock %}  
+{% block body %} 
+<h1>Address Created or Modified</h1>
+
+<table>
+  <tbody>
+    <tr>
+      <th>FirstName:</th>
+    <td>{{ address.firstname }}</td>
+    </tr>
+    <tr>
+      <th>LastName:</th>
+      <td>{{ address.lastName }}</td>
+    </tr>
+    <tr>
+      <th>Country:</th>
+      <td>{{ address.country }}</td>
+    </tr>
+    <tr>
+      <th>City:</th>
+      <td>{{ address.city }}</td>
+    </tr>
+    <tr>
+      <th>Street:</th>
+      <td>{{ address.street }}</td>
+    </tr>
+    <tr>
+      <th>Zip:</th>
+      <td>{{ address.zip }}</td>
+    </tr>
+    <tr>
+      <th>Birthday:</th>
+      <td>{{ address.birthday | date('c')}}</td>
+    </tr>
+    <tr>
+      <th>Email:</th>
+      <td>{{ address.email }}</td>
+    </tr>
+  </tbody>
+</table>
+<br/>
+<a href="/addresses">View All</a> -
+<a href="/update/{{ address.id }}">Modify</a>
+{% endblock %} 

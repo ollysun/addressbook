@@ -20,7 +20,7 @@ class AddressBookController extends Controller
     public function indexAction()
     {
         $addresses = $this->getDoctrine()
-            ->getRepository('AppBundle:AddressBook')
+            ->getRepository('AppBundle:Address')
             ->findAll();
 
         return $this->render('addressbook/index.html.twig', array('data' => $addresses));
@@ -40,9 +40,7 @@ class AddressBookController extends Controller
             ->add('city', TextType::class)
             ->add('country', TextType::class)
             ->add('phoneNo', TextType::class)
-            ->add('birthday', DateType::class, array(
-                            'widget' => 'text',
-            ))
+            ->add('birthday', DateType::class, array('widget' => 'choice'))
             ->add('email', EmailType::class)
             ->add('save', SubmitType::class, array('label' => 'New Address'))
             ->getForm();
@@ -105,7 +103,7 @@ class AddressBookController extends Controller
             //executes the queries (i.e. the INSERT query)
             $doct->flush();
 
-            return $this->redirectToRoute('/show/'.$id);
+            return $this->redirect('/show/'.$id);
 
         //return $this->redirectToRoute('app_book_display');
         } else {
@@ -124,15 +122,13 @@ class AddressBookController extends Controller
         $address = $em->getRepository('AppBundle:Address')->find($id);
 
         if (!$address) {
-            throw $this->createNotFoundException(
-                'There are no address with the following id: '.$id
-            );
+            throw $this->createNotFoundException('no address found for id: '.$id);
         }
 
         $em->remove($address);
         $em->flush();
 
-        return $this->redirect('addresses');
+        return $this->redirectToRoute('addresses');
     }
 
     /**
@@ -152,7 +148,7 @@ class AddressBookController extends Controller
 
         return $this->render(
             'addressbook/view.html.twig',
-            array('article' => $address)
+            array('address' => $address)
         );
     }
 }
