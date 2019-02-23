@@ -15,19 +15,19 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 class AddressBookController extends Controller
 {
     /**
-     * @Route("/)
+     * @Route("/addresses", name="addresses")
      */
     public function indexAction()
     {
-        $address = $this->getDoctrine()
+        $addresses = $this->getDoctrine()
             ->getRepository('AppBundle:AddressBook')
             ->findAll();
 
-        return $this->render('addressbook/list.html.twig', array('data' => $address));
+        return $this->render('addressbook/index.html.twig', array('data' => $addresses));
     }
 
     /**
-     * @Route("/address/create")
+     * @Route("/create", name="create_address")
      */
     public function createAction(Request $request)
     {
@@ -56,7 +56,7 @@ class AddressBookController extends Controller
             $em->persist($address);
             $em->flush();
 
-            return $this->redirect('/show-address/'.$address->getId());
+            return $this->redirect('/show/'.$address->getId());
         }
 
         return $this->render(
@@ -66,7 +66,7 @@ class AddressBookController extends Controller
     }
 
     /**
-     * @Route("/books/update/{id}", name = "app_book_update" )
+     * @Route("/update/{id}", name = "update_address" )
      */
     public function updateAction($id, Request $request)
     {
@@ -105,11 +105,54 @@ class AddressBookController extends Controller
             //executes the queries (i.e. the INSERT query)
             $doct->flush();
 
-            return $this->redirectToRoute('app_book_display');
+            return $this->redirectToRoute('/show/'.$id);
+
+        //return $this->redirectToRoute('app_book_display');
         } else {
-            return $this->render('books/new.html.twig', array(
+            return $this->render('addressbook/edit.html.twig', array(
                 'form' => $form->createView(),
             ));
         }
+    }
+
+    /**
+     * @Route("/destroy/{id}")
+     */
+    public function deleteAction($id)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $address = $em->getRepository('AppBundle:Address')->find($id);
+
+        if (!$address) {
+            throw $this->createNotFoundException(
+                'There are no address with the following id: '.$id
+            );
+        }
+
+        $em->remove($address);
+        $em->flush();
+
+        return $this->redirect('addresses');
+    }
+
+    /**
+     * @Route("/show/{id}")
+     */
+    public function showAction($id)
+    {
+        $address = $this->getDoctrine()
+            ->getRepository('AppBundle:Address')
+            ->find($id);
+
+        if (!$address) {
+            throw $this->createNotFoundException(
+                'There are no address with the following id: '.$id
+            );
+        }
+
+        return $this->render(
+            'addressbook/view.html.twig',
+            array('article' => $address)
+        );
     }
 }

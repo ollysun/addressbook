@@ -1,0 +1,53 @@
+<style>
+    td,
+    th {
+        padding: 10px;
+    }
+    th {
+        text-align: left;
+    }
+</style>
+<h1>All Addresses</h1>
+{% if data is not empty %}
+    <table>
+        <thead>
+            <tr>
+                <th>FirstName</th>
+                <th>LastName</th>
+                <th>Country</th>
+                <th>City</th>
+                <th>Street</th>
+                <th>Zip</th>
+                <th>Phone No</th>
+                <th>Birthday</th>
+                <th>Email</th>
+                <th colspan='2'>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for address in data %}
+                <tr>
+                    <td>{{address.firstname }}</td>
+                    <td>{{address.lastname }}</td>
+                    <td>{{address.country}}</td>
+                    <td>{{address.city}}</td>
+                    <td>{{address.street}}</td>
+                    <td>{{address.zip}}</td>
+                    <td>{{address.phoneNo}}</td>
+                    <td>{{address.birthday}}</td>
+                    <td>{{address.email}}</td>
+                    <td>
+                        <a href="destroy/{{ article.id }}">Delete</a>
+                    </td>
+                    <td>
+                        <a href="update/{{ article.id }}">Update</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No address found.</p>
+{% endif %}
+<br/>
+<a href="/create">Create New</a>
