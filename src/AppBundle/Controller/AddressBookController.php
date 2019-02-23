@@ -2,10 +2,10 @@
 
 namespace AppBundle\Controller;
 
+//use Doctrine\DBAL\LockMode;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use AppBundle\Entity\Address;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -13,6 +13,7 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Doctrine\ORM\OptimisticLockException;
+use Symfony\Component\HttpFoundation\Response;
 
 //use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -77,33 +78,34 @@ class AddressBookController extends Controller
     public function updateAction($id, Request $request)
     {
         $doct = $this->getDoctrine()->getManager();
-
-        $address = $doct->getRepository('AppBundle:Address')->find($id, LockMode::OPTIMISTIC, $expectedVersion);
         $expectedVersion = 184;
 
-        if (!$address) {
-            throw $this->createNotFoundException(
-                'No Address found for id '.$id
-            );
-        }
-        $form = $this->createFormBuilder($address)
-            ->add('firstName', TextType::class)
-            ->add('lastName', TextType::class)
-            ->add('street', TextareaType::class)
-            ->add('zip', TextType::class)
-            ->add('city', TextType::class)
-            ->add('country', TextType::class)
-            ->add('phoneNo', TextType::class)
-            ->add('birthday', DateType::class, array(
-                'widget' => 'text',
-            ))
-            ->add('email', EmailType::class)
-            ->add('save', SubmitType::class, array('label' => 'Submit'))
-            ->getForm();
-
-        $form->handleRequest($request);
-
         try {
+            $address = $doct->getRepository('AppBundle:Address')
+                ->find($id);
+
+            if (!$address) {
+                throw $this->createNotFoundException(
+                    'No Address found for id '.$id
+                );
+            }
+            $form = $this->createFormBuilder($address)
+                ->add('firstName', TextType::class)
+                ->add('lastName', TextType::class)
+                ->add('street', TextareaType::class)
+                ->add('zip', TextType::class)
+                ->add('city', TextType::class)
+                ->add('country', TextType::class)
+                ->add('phoneNo', TextType::class)
+                ->add('birthday', DateType::class, array(
+                    'widget' => 'text',
+                ))
+                ->add('email', EmailType::class)
+                ->add('save', SubmitType::class, array('label' => 'Submit'))
+                ->getForm();
+
+            $form->handleRequest($request);
+
             if ($form->isSubmitted() && $form->isValid()) {
                 $address = $form->getData();
                 $doct = $this->getDoctrine()->getManager();
@@ -120,8 +122,9 @@ class AddressBookController extends Controller
                     'form' => $form->createView(),
                 ));
             }
-        } catch (OptimisticLockException $e) {
-            echo 'Sorry, but someone else has already changed this entity. Please apply the changes again!';
+        } catch (\Exception $e) {
+            return new Response($e->getMessage(), 500);
+            //echo 'Sorry, but someone else has already changed this entity. Please apply the changes again!';
         }
     }
 
@@ -133,22 +136,20 @@ class AddressBookController extends Controller
         $em = $this->getDoctrine()->getManager();
         $expectedVersion = 184;
 
-        if ($address) {
-            try {
+        try {
+            $address = $em->getRepository('AppBundle:Address')
+                ->find($id);
+            if ($address) {
                 $em->remove($address);
                 $em->flush();
-            } catch (NotFoundHttpException $e) {
-                return new Response($e->getMessage(), 500);
+            } else {
+                throw $this->createNotFoundException();
             }
 
             return $this->redirectToRoute('addresses');
-        //return new Response('Success deleting order '.$order->getId(), 200);
-        } else {
-            //return new Response('Order Not Found', 500);
-            throw $this->createNotFoundException();
+        } catch (\Exception $e) {
+            return new Response($e->getMessage(), 500);
         }
-
-        return $this->redirectToRoute('addresses');
     }
 
     /**
