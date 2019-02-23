@@ -5,6 +5,7 @@ namespace AppBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use AppBundle\Entity\Address;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -12,6 +13,9 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 
+//use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+return $this->redirectToRoute('addresses');
 class AddressBookController extends Controller
 {
     /**
@@ -121,8 +125,22 @@ class AddressBookController extends Controller
         $em = $this->getDoctrine()->getManager();
         $address = $em->getRepository('AppBundle:Address')->find($id);
 
+        if ($address) {
+            try {
+                $em->remove($address);
+                $em->flush();
+            } catch (NotFoundHttpException $e) {
+                return new Response($e->getMessage(), 500);
+            }
+
+            return $this->redirectToRoute('addresses');
+        //return new Response('Success deleting order '.$order->getId(), 200);
+        } else {
+            return new Response('Order Not Found', 500);
+        }
+
         if (!$address) {
-            throw $this->createNotFoundException('no address found for id: '.$id);
+            throw $this->createNotFoundException();
         }
 
         $em->remove($address);
@@ -141,9 +159,7 @@ class AddressBookController extends Controller
             ->find($id);
 
         if (!$address) {
-            throw $this->createNotFoundException(
-                'There are no address with the following id: '.$id
-            );
+            throw $this->createNotFoundException();
         }
 
         return $this->render(
