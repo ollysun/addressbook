@@ -11,7 +11,10 @@ th {
 {% endblock %}  
 {% block body %} 
 <h1>Address Created or Modified</h1>
-
+<div>
+<a href="/addresses">View All</a> |
+<a href="/update/{{ address.id }}">Modify</a>
+</div>
 <table>
   <tbody>
     <tr>
@@ -49,6 +52,5 @@ th {
   </tbody>
 </table>
 <br/>
-<a href="/addresses">View All</a> -
-<a href="/update/{{ address.id }}">Modify</a>
+
 {% endblock %} 

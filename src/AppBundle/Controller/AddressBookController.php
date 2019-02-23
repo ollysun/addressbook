@@ -12,10 +12,11 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Doctrine\ORM\OptimisticLockException;
 
 //use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-return $this->redirectToRoute('addresses');
+//return $this->redirectToRoute('addresses');
 class AddressBookController extends Controller
 {
     /**
@@ -50,15 +51,18 @@ class AddressBookController extends Controller
             ->getForm();
 
         $form->handleRequest($request);
+        try {
+            if ($form->isSubmitted() && $form->isValid()) {
+                $address = $form->getData();
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $address = $form->getData();
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($address);
+                $em->flush();
 
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($address);
-            $em->flush();
-
-            return $this->redirect('/show/'.$address->getId());
+                return $this->redirect('/show/'.$address->getId());
+            }
+        } catch (OptimisticLockException $e) {
+            echo 'Sorry, but someone else has already changed this entity. Please apply the changes again!';
         }
 
         return $this->render(
@@ -73,7 +77,9 @@ class AddressBookController extends Controller
     public function updateAction($id, Request $request)
     {
         $doct = $this->getDoctrine()->getManager();
-        $address = $doct->getRepository('AppBundle:Address')->find($id);
+
+        $address = $doct->getRepository('AppBundle:Address')->find($id, LockMode::OPTIMISTIC, $expectedVersion);
+        $expectedVersion = 184;
 
         if (!$address) {
             throw $this->createNotFoundException(
@@ -97,23 +103,25 @@ class AddressBookController extends Controller
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $address = $form->getData();
-            $doct = $this->getDoctrine()->getManager();
+        try {
+            if ($form->isSubmitted() && $form->isValid()) {
+                $address = $form->getData();
+                $doct = $this->getDoctrine()->getManager();
 
-            // tells Doctrine you want to save the Product
-            $doct->persist($address);
+                // tells Doctrine you want to save the Product
+                $doct->persist($address);
 
-            //executes the queries (i.e. the INSERT query)
-            $doct->flush();
+                //executes the queries (i.e. the INSERT query)
+                $doct->flush();
 
-            return $this->redirect('/show/'.$id);
-
-        //return $this->redirectToRoute('app_book_display');
-        } else {
-            return $this->render('addressbook/edit.html.twig', array(
-                'form' => $form->createView(),
-            ));
+                return $this->redirect('/show/'.$id);
+            } else {
+                return $this->render('addressbook/edit.html.twig', array(
+                    'form' => $form->createView(),
+                ));
+            }
+        } catch (OptimisticLockException $e) {
+            echo 'Sorry, but someone else has already changed this entity. Please apply the changes again!';
         }
     }
 
@@ -123,7 +131,7 @@ class AddressBookController extends Controller
     public function deleteAction($id)
     {
         $em = $this->getDoctrine()->getManager();
-        $address = $em->getRepository('AppBundle:Address')->find($id);
+        $expectedVersion = 184;
 
         if ($address) {
             try {
@@ -136,15 +144,9 @@ class AddressBookController extends Controller
             return $this->redirectToRoute('addresses');
         //return new Response('Success deleting order '.$order->getId(), 200);
         } else {
-            return new Response('Order Not Found', 500);
-        }
-
-        if (!$address) {
+            //return new Response('Order Not Found', 500);
             throw $this->createNotFoundException();
         }
-
-        $em->remove($address);
-        $em->flush();
 
         return $this->redirectToRoute('addresses');
     }
